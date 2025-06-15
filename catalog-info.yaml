@@ -4,12 +4,7 @@ metadata:
   name: sample-spring-boot-app-backstage
   title: sample-spring-boot-app-backstage
   annotations:
-    circleci.com/project-slug: github/piomin/sample-spring-boot-app-backstage
-    github.com/project-slug: piomin/sample-spring-boot-app-backstage
-    sonarqube.org/project-key: piomin_sample-spring-boot-app-backstage
-    backstage.io/kubernetes-id: sample-app
-    prometheus.io/alert: all
-    prometheus.io/rule: container_memory_usage_bytes|instance,sum by (instance) (container_memory_usage_bytes)
+    github.com/project-slug: rayl15/sample-spring-boot-app-backstage
   tags:
     - spring-boot
     - java
@@ -19,5 +14,5 @@ metadata:
     - sonarqube
 spec:
   type: service
-  owner: piotr.minkowski@gmail.com
+  owner: devops@sourcefuse.com
   lifecycle: experimental
