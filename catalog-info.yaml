@@ -4,7 +4,7 @@ metadata:
   name: sample-spring-boot-app-backstage
   title: sample-spring-boot-app-backstage
   annotations:
-    github.com/project-slug: sourcefuse/sample-spring-boot-app
+    github.com/project-slug: sourcefuse/arc-platform-spring-boot-app
   tags:
     - spring-boot
     - java
