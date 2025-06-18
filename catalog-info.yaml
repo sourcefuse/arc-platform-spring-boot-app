@@ -5,6 +5,8 @@ metadata:
   title: sample-spring-boot-app-backstage
   annotations:
     github.com/project-slug: sourcefuse/arc-platform-spring-boot-app
+    argocd/app-name: clm-app-qa
+    argocd/proxy-url: '/argocd/api2'
   tags:
     - spring-boot
     - java
