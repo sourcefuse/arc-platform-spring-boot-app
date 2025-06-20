@@ -7,6 +7,8 @@ metadata:
     github.com/project-slug: sourcefuse/arc-platform-spring-boot-app
     argocd/app-name: clm-app-qa
     argocd/proxy-url: '/argocd/api2'
+    backstage.io/kubernetes-id: sample-spring-boot-app-backstage
+    backstage.io/kubernetes-cluster: sourcekube3
   tags:
     - spring-boot
     - java
