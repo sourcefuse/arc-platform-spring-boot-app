@@ -10,7 +10,7 @@ metadata:
     backstage.io/kubernetes-id: sample-spring-boot-app-backstage
     backstage.io/kubernetes-cluster: sourcekube3
     sonarqube.org/project-key: sourcefuse_bizbook-arc-iac
-    jenkins.io/job-full-name: 'Oasis/QA/rakuten-pms-api-sk3'
+    jenkins.io/job-full-name: 'Oasis/QA
   tags:
     - spring-boot
     - java
