@@ -10,7 +10,7 @@ metadata:
     backstage.io/kubernetes-id: sample-spring-boot-app-backstage
     backstage.io/kubernetes-cluster: sourcekube3
     sonarqube.org/project-key: sourcefuse_bizbook-arc-iac
-    jira.com/project-key: ARCP
+    jira.com/project-key: AIML
   tags:
     - spring-boot
     - java
