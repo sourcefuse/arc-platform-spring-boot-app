@@ -11,6 +11,9 @@ metadata:
     backstage.io/kubernetes-cluster: sourcekube3
     sonarqube.org/project-key: sourcefuse_bizbook-arc-iac
     jenkins.io/job-full-name: 'Oasis/QA/rakuten-pms-api-sk3'
+    aws.com/vpc-id: vpc-1234
+    aws.com/region: us-east-1
+    aws.com/account-id: "123456789012"
   tags:
     - spring-boot
     - java
