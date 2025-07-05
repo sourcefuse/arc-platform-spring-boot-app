@@ -11,6 +11,7 @@ metadata:
     backstage.io/kubernetes-cluster: sourcekube3
     sonarqube.org/project-key: sourcefuse_bizbook-arc-iac
     jenkins.io/job-full-name: 'Oasis/QA/rakuten-pms-api-sk3'
+    jenkins.io/jenkins-url: 'https://jenkins.sourcef.us'
     aws.com/vpc-id: vpc-1234
     aws.com/region: us-east-1
     aws.com/s3-bucket: "oasis-dev"
