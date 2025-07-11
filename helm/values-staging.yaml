@@ -1,0 +1,16 @@
+replicaCount: 2
+image:
+  repository: myapp
+  tag: ""
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  enabled: true
+  annotations: {}
+  hosts:
+    - host: staging.example.com
+      paths:
+        - /
+resources: {}

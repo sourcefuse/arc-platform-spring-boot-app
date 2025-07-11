@@ -1,0 +1,22 @@
+replicaCount: 3
+image:
+  repository: myapp
+  tag: ""
+  pullPolicy: IfNotPresent
+service:
+  type: LoadBalancer
+  port: 80
+ingress:
+  enabled: true
+  annotations: {}
+  hosts:
+    - host: example.com
+      paths:
+        - /
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
