@@ -1,0 +1,21 @@
+# Move to the .github/workflows folder
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Run SAST
+      run: mvn verify sonar:sonar
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    - name: Dependency check
+      run: mvn org.owasp:dependency-check-maven:check
