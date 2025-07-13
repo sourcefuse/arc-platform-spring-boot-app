@@ -1,0 +1,149 @@
+# Move to the .github/workflows folder
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly on Sunday at midnight
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  dependency-check:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'sample-spring-boot-app'
+          path: '.'
+          format: 'ALL'
+          out: 'reports'
+          args: >-
+            --enableRetired
+            --nvdApiKey ${{ secrets.NVD_API_KEY }}
+
+      - name: Upload dependency check report
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-check-report
+          path: reports
+
+      - name: Send notification on failure
+        if: failure()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_CHANNEL: security-alerts
+          SLACK_COLOR: danger
+          SLACK_TITLE: Dependency Check Failed
+          SLACK_MESSAGE: 'OWASP Dependency Check found vulnerabilities. Check the report.'
+
+  trivy-scan:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  snyk-scan:
+    name: Snyk Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/maven@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+  docker-scan:
+    name: Docker Image Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: sample-spring-boot-app:scan
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Trivy vulnerability scanner on Docker image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'sample-spring-boot-app:scan'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+
+  security-report:
+    name: Generate Security Report
+    needs: [dependency-check, trivy-scan, snyk-scan, docker-scan]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Download dependency check report
+        uses: actions/download-artifact@v3
+        with:
+          name: dependency-check-report
+          path: reports
+
+      - name: Generate summary report
+        run: |
+          echo "# Security Scan Summary" > $GITHUB_STEP_SUMMARY
+          echo "## Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Dependency Check: ${{ needs.dependency-check.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Trivy Scan: ${{ needs.trivy-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Snyk Scan: ${{ needs.snyk-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker Scan: ${{ needs.docker-scan.result }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Send notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_CHANNEL: security-alerts
+          SLACK_COLOR: ${{ job.status }}
+          SLACK_TITLE: Security Scan Complete
+          SLACK_MESSAGE: 'Weekly security scan completed with status: ${{ job.status }}'

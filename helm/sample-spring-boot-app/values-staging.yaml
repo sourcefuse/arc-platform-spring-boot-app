@@ -1,0 +1,125 @@
+# Staging environment configuration for sample-spring-boot-app
+
+replicaCount: 2
+
+image:
+  repository: docker.io/username/sample-spring-boot-app
+  tag: latest
+  pullPolicy: Always
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+  hosts:
+    - host: staging-app.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: staging-app-tls
+      hosts:
+        - staging-app.example.com
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - sample-spring-boot-app
+          topologyKey: kubernetes.io/hostname
+
+# Application specific configuration
+springProfiles: staging
+
+environment:
+  SPRING_PROFILES_ACTIVE: staging
+  JAVA_OPTS: "-Xms512m -Xmx1g"
+  LOG_LEVEL: INFO
+
+# Database configuration
+database:
+  url: jdbc:postgresql://staging-db:5432/appdb
+  username: dbuser
+  # Password should be stored in a secret and referenced here
+  existingSecret: db-credentials
+  existingSecretKey: password
+
+# Disable development tools in staging
+developmentMode:
+  enabled: false
+  debugPort: null
+  hotReload: false
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  path: /actuator/prometheus
+
+# Persistence configuration
+persistence:
+  enabled: true
+  storageClass: "standard"
+  size: 10Gi
+  accessMode: ReadWriteOnce
+
+# Liveness and readiness probes
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: http
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  failureThreshold: 3

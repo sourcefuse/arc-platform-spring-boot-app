@@ -1,0 +1,107 @@
+# Development environment configuration for sample-spring-boot-app
+
+replicaCount: 1
+
+image:
+  repository: docker.io/username/sample-spring-boot-app
+  tag: latest
+  pullPolicy: Always
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  hosts:
+    - host: dev-app.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Application specific configuration
+springProfiles: dev
+
+environment:
+  SPRING_PROFILES_ACTIVE: dev
+  JAVA_OPTS: "-Xms256m -Xmx512m"
+  LOG_LEVEL: INFO
+
+# Database configuration
+database:
+  url: jdbc:postgresql://dev-db:5432/appdb
+  username: dbuser
+  # Password should be stored in a secret and referenced here
+  existingSecret: db-credentials
+  existingSecretKey: password
+
+# Enable development tools
+developmentMode:
+  enabled: true
+  debugPort: 5005
+  hotReload: true
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  path: /actuator/prometheus
+
+# Persistence configuration
+persistence:
+  enabled: false
+
+# Liveness and readiness probes
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: http
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  failureThreshold: 3
