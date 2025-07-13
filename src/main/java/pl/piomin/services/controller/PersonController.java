@@ -1,57 +1,55 @@
 package pl.piomin.services.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.piomin.services.domain.Person;
+import pl.piomin.services.service.PersonService;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1")
 public class PersonController {
 
-    private final Logger LOG = LoggerFactory.getLogger(PersonController.class);
-    private final List<Person> objs = new ArrayList<>();
+    private final PersonService personService;
 
-    @GetMapping
-    public List<Person> findAll() {
-        return objs;
-    }
-
-    @GetMapping("/{id}")
-    public Person findById(@PathVariable("id") Long id) {
-        Person obj = objs.stream().filter(it -> it.getId().equals(id))
-                .findFirst()
-                .orElseThrow();
-        LOG.info("Found: {}", obj.getId());
-        return obj;
+    @Autowired
+    public PersonController(PersonService personService) {
+        this.personService = personService;
     }
 
     @PostMapping
-    public Person add(@RequestBody Person obj) {
-        obj.setId((long) (objs.size() + 1));
-        LOG.info("Added: {}", obj);
-        objs.add(obj);
-        return obj;
+    public ResponseEntity<Person> add(@RequestBody Person person) {
+        Person created = personService.add(person);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Person>> findAll() {
+        List<Person> persons = personService.findAll();
+        return ResponseEntity.ok(persons);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Person> findById(@PathVariable Long id) {
+        Optional<Person> person = personService.findById(id);
+        return person.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Person> update(@PathVariable Long id, @RequestBody Person person) {
+        Optional<Person> updated = personService.update(id, person);
+        return updated.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable("id") Long id) {
-        Person obj = objs.stream().filter(it -> it.getId().equals(id)).findFirst().orElseThrow();
-        objs.remove(obj);
-        LOG.info("Removed: {}", id);
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        personService.delete(id);
+        return ResponseEntity.noContent().build();
     }
-
-    @PutMapping
-    public void update(@RequestBody Person obj) {
-        Person objTmp = objs.stream()
-                .filter(it -> it.getId().equals(obj.getId()))
-                .findFirst()
-                .orElseThrow();
-        objs.set(objs.indexOf(objTmp), obj);
-        LOG.info("Updated: {}", obj.getId());
-    }
-
 }
