@@ -1,0 +1,20 @@
+package com.example.demo.config;
+
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
+
+/**
+ * Test configuration class for providing test-specific beans and configurations.
+ */
+@TestConfiguration
+@Profile("test")
+public class TestConfig {
+
+    /**
+     * This class can be used to provide test-specific beans such as:
+     * - Mock services
+     * - Test data generators
+     * - Custom test properties
+     */
+}
