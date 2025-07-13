@@ -1,0 +1,39 @@
+# Git files
+.git
+.gitignore
+.github
+
+# Build files
+target/
+!target/*.jar
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# CI/CD files
+.circleci/
+
+# Documentation
+README.md
+LICENSE
+
+# Docker files
+Dockerfile
+.dockerignore
+
+# Logs
+logs/
+*.log
+
+# Test reports
+test-output/
+
+# Backstage files
+catalog-info.yaml
+
+# Dependency lock files that aren't needed in the container
+pom.xml.versionsBackup
