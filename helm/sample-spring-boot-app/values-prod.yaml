@@ -1,0 +1,159 @@
+# Production environment configuration for sample-spring-boot-app
+
+replicaCount: 3
+
+image:
+  repository: docker.io/username/sample-spring-boot-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/path: "/actuator/prometheus"
+  prometheus.io/port: "8080"
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+  hosts:
+    - host: app.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: app-tls
+      hosts:
+        - app.example.com
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 1000m
+    memory: 1Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+                - sample-spring-boot-app
+        topologyKey: kubernetes.io/hostname
+
+# Application specific configuration
+springProfiles: prod
+
+environment:
+  SPRING_PROFILES_ACTIVE: prod
+  JAVA_OPTS: "-Xms1g -Xmx2g -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError"
+  LOG_LEVEL: WARN
+
+# Database configuration
+database:
+  url: jdbc:postgresql://prod-db:5432/appdb
+  username: dbuser
+  # Password should be stored in a secret and referenced here
+  existingSecret: db-credentials
+  existingSecretKey: password
+
+# Disable development tools in production
+developmentMode:
+  enabled: false
+  debugPort: null
+  hotReload: false
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  path: /actuator/prometheus
+
+# Persistence configuration
+persistence:
+  enabled: true
+  storageClass: "premium-rwo"
+  size: 20Gi
+  accessMode: ReadWriteOnce
+
+# Liveness and readiness probes
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: http
+  initialDelaySeconds: 90
+  periodSeconds: 20
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: http
+  initialDelaySeconds: 60
+  periodSeconds: 15
+  failureThreshold: 3
+
+# Backup configuration
+backup:
+  enabled: true
+  schedule: "0 1 * * *"
+  retention: 7
+  storageClass: "standard"
+  size: 50Gi
+
+# Network policies
+networkPolicy:
+  enabled: true
+  ingressRules:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
